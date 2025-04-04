@@ -6,17 +6,14 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           mui: ['@mui/material', '@mui/icons-material']
-        },
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        }
       }
     },
     chunkSizeWarningLimit: 1000,
@@ -27,10 +24,7 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    host: true,
-    hmr: {
-      overlay: true
-    }
+    host: true
   },
   base: '/',
   optimizeDeps: {
@@ -41,9 +35,5 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
-  },
-  // Vercel-specific optimizations
-  ssr: {
-    noExternal: ['@mui/material', '@mui/icons-material']
   }
 })
