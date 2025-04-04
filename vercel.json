@@ -21,6 +21,20 @@
       "destination": "/index.html"
     }
   ],
+  "functions": {
+    "api/visitor-registration.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/maintenance-request.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/document-access.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
   "env": {
     "NODE_ENV": "production"
   }
