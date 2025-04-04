@@ -33,6 +33,10 @@
     "api/document-access.js": {
       "memory": 1024,
       "maxDuration": 10
+    },
+    "api/contact-request.js": {
+      "memory": 1024,
+      "maxDuration": 10
     }
   },
   "env": {
