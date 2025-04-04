@@ -9,7 +9,9 @@ import {
   Paper,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Chip,
+  Divider
 } from '@mui/material';
 
 const UnitSearch = () => {
@@ -25,21 +27,15 @@ const UnitSearch = () => {
     setUnitInfo(null);
 
     try {
-      const response = await fetch(`/api/contact-request?unitNumber=${unitNumber}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': 'Bearer your-token-here' // Replace with actual token
-        }
-      });
-
+      const response = await fetch(`/api/contact-request?unitNumber=${unitNumber}`);
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch unit information');
       }
 
-      if (data.count === 0) {
-        setError('No information found for this unit number');
+      if (!data.success) {
+        setError('Unit not found');
       } else {
         setUnitInfo(data.data);
       }
@@ -47,6 +43,19 @@ const UnitSearch = () => {
       setError(err.message || 'An error occurred while searching');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'success';
+      case 'in-progress':
+        return 'warning';
+      case 'pending':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
@@ -64,6 +73,7 @@ const UnitSearch = () => {
           onChange={(e) => setUnitNumber(e.target.value)}
           required
           margin="normal"
+          placeholder="e.g., 101, 102, 201"
         />
 
         <Button
@@ -84,24 +94,45 @@ const UnitSearch = () => {
       )}
 
       {unitInfo && (
-        <Paper elevation={2} sx={{ p: 2 }}>
+        <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Unit Information
+            Unit {unitInfo.unitNumber} Information
           </Typography>
+          
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle1">
+              Owner: {unitInfo.owner}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Contact: {unitInfo.contact}
+            </Typography>
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography variant="subtitle1" gutterBottom>
+            Recent Requests
+          </Typography>
+          
           <List>
-            {unitInfo.map((request, index) => (
-              <ListItem key={index} divider={index < unitInfo.length - 1}>
+            {unitInfo.recentRequests.map((request, index) => (
+              <ListItem key={index} divider={index < unitInfo.recentRequests.length - 1}>
                 <ListItemText
-                  primary={`Request: ${request.subject}`}
+                  primary={request.subject}
                   secondary={
                     <>
                       <Typography component="span" variant="body2" color="text.primary">
-                        Status: {request.status}
+                        Request ID: {request.requestId}
                       </Typography>
                       <br />
                       Date: {new Date(request.timestamp).toLocaleDateString()}
                     </>
                   }
+                />
+                <Chip
+                  label={request.status}
+                  color={getStatusColor(request.status)}
+                  size="small"
                 />
               </ListItem>
             ))}

@@ -3,8 +3,62 @@ export const config = {
   regions: ['syd1']
 }
 
-// In-memory storage for demo purposes
-// In a real implementation, use a database
+// Sample unit data
+const sampleUnits = {
+  '101': {
+    unitNumber: '101',
+    owner: 'John Smith',
+    contact: 'john.smith@email.com',
+    requests: [
+      {
+        requestId: 'CR-1',
+        subject: 'Maintenance Request',
+        status: 'completed',
+        timestamp: '2024-03-15T10:30:00Z'
+      },
+      {
+        requestId: 'CR-2',
+        subject: 'General Inquiry',
+        status: 'pending',
+        timestamp: '2024-04-01T14:20:00Z'
+      }
+    ]
+  },
+  '102': {
+    unitNumber: '102',
+    owner: 'Sarah Johnson',
+    contact: 'sarah.j@email.com',
+    requests: [
+      {
+        requestId: 'CR-3',
+        subject: 'Parking Issue',
+        status: 'in-progress',
+        timestamp: '2024-03-20T09:15:00Z'
+      }
+    ]
+  },
+  '201': {
+    unitNumber: '201',
+    owner: 'Michael Brown',
+    contact: 'm.brown@email.com',
+    requests: [
+      {
+        requestId: 'CR-4',
+        subject: 'Noise Complaint',
+        status: 'completed',
+        timestamp: '2024-03-25T16:45:00Z'
+      },
+      {
+        requestId: 'CR-5',
+        subject: 'Maintenance Request',
+        status: 'pending',
+        timestamp: '2024-04-02T11:30:00Z'
+      }
+    ]
+  }
+}
+
+// In-memory storage for contact requests
 let contactRequests = []
 
 export default async function handler(request) {
@@ -49,37 +103,46 @@ export default async function handler(request) {
     }
   }
 
-  // Handle GET request for retrieving contact requests
+  // Handle GET request for retrieving unit information
   if (request.method === 'GET') {
     try {
       const url = new URL(request.url)
-      const status = url.searchParams.get('status')
       const unitNumber = url.searchParams.get('unitNumber')
-      const authToken = request.headers.get('Authorization')
-
-      // In a real implementation, validate the auth token
-      if (!authToken) {
-        return new Response('Unauthorized', { status: 401 })
+      
+      if (!unitNumber) {
+        return new Response('Unit number is required', { status: 400 })
       }
 
-      // Filter requests based on query parameters
-      let filteredRequests = [...contactRequests]
-
-      if (status) {
-        filteredRequests = filteredRequests.filter(req => req.status === status)
+      // Check if unit exists in sample data
+      const unitData = sampleUnits[unitNumber]
+      
+      if (!unitData) {
+        return new Response(JSON.stringify({
+          success: false,
+          message: 'Unit not found',
+          data: null
+        }), {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
       }
 
-      if (unitNumber) {
-        filteredRequests = filteredRequests.filter(req => req.unitNumber === unitNumber)
+      // Get contact requests for this unit
+      const unitRequests = contactRequests.filter(req => req.unitNumber === unitNumber)
+      
+      // Combine sample data with actual requests
+      const responseData = {
+        ...unitData,
+        recentRequests: [...unitData.requests, ...unitRequests].sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        )
       }
-
-      // Sort by timestamp (newest first)
-      filteredRequests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
       return new Response(JSON.stringify({
         success: true,
-        count: filteredRequests.length,
-        data: filteredRequests
+        data: responseData
       }), {
         headers: {
           'Content-Type': 'application/json',
